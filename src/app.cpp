@@ -89,13 +89,13 @@ void App::loadBigImage(QVariantList indexPath)
 		connect(iml, SIGNAL(titleChanged()), this, SLOT(displayImage()));
 		iml->load();
 	}
-	else
-	{
-		// hm, this is not an image, instead something different
-		// -> lets get the next level of json infos
-		QUrl url(bigImage->origImageUrl());
-		loadJson(url);
-	}
+//	else
+//	{
+//		// hm, this is not an image, instead something different
+//		// -> lets get the next level of json infos
+//		QUrl url(bigImage->origImageUrl());
+//		loadJson(url);
+//	}
 }
 
 void App::loadNext()
@@ -170,28 +170,28 @@ void App::jsonReceived(QNetworkReply * reply)
 			{
 				m_model->append(new ImageLoader(linkLittle, link, title, this));
 			}
-			else
-			{
-				if (image.find("images") != image.end())
-				{
-					std::list<AlbumPic*> *albumPics = 0;
-					// we are already in an album, not in the gallery
-					QVariantList jsonAlbumList = image.find("images")->toList();
-					for (QList<QVariant>::iterator ait = jsonAlbumList.begin(); ait != jsonAlbumList.end(); ait++)
-					{
-						QVariantMap albumImage = ait->toMap();
-
-						QString description = albumImage["description"].toString();
-						QString albumPicUrl = albumImage["link"].toString();
-						albumPics->push_back(new AlbumPic(albumPicUrl, description));
-					}
-					m_model->append(new AlbumLoader(albumPics, link, link, title, this));
-				}
-				else
-				{
-					m_model->append(new AlbumLoader(linkLittle, link, title, this));
-				}
-			}
+//			else
+//			{
+//				if (image.find("images") != image.end())
+//				{
+//					std::list<AlbumPic*> *albumPics = 0;
+//					// we are already in an album, not in the gallery
+//					QVariantList jsonAlbumList = image.find("images")->toList();
+//					for (QList<QVariant>::iterator ait = jsonAlbumList.begin(); ait != jsonAlbumList.end(); ait++)
+//					{
+//						QVariantMap albumImage = ait->toMap();
+//
+//						QString description = albumImage["description"].toString();
+//						QString albumPicUrl = albumImage["link"].toString();
+//						albumPics->push_back(new AlbumPic(albumPicUrl, description));
+//					}
+//					m_model->append(new AlbumLoader(albumPics, link, link, title, this));
+//				}
+//				else
+//				{
+//					m_model->append(new AlbumLoader(linkLittle, link, title, this));
+//				}
+//			}
 			i++;
 		}
 	}
