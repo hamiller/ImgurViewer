@@ -28,6 +28,9 @@ using namespace bb::cascades;
 const char* const App::galleryUrl = "https://api.imgur.com/3/gallery/";
 //https://api.imgur.com/3/gallery/hot/viral/0.json
 //https://api.imgur.com/3/gallery/hot/viral/0.json
+//const char* const ImageLoader::pictureUrl = "https://api.imgur.com/3/image/";
+const char* const App::pictureUrl = "http://i.imgur.com/";
+const char* const App::clientId = "Client-ID d99014129d28197";
 
 App::App(QObject *parent) :
 		QObject(parent), m_model(new QListDataModel<QObject*>()), iml(NULL)
@@ -46,20 +49,30 @@ App::App(QObject *parent) :
 	Application::instance()->setScene(root);
 }
 
-void App::loadGallery(QString type, QString page)
+void App::loadGallery(QString type, QString sort, QString page)
 {
 	m_model->clear();
 	emit modelChanged();
 
 	// Creates the network request and sets the destination URL.
-	const QUrl url(galleryUrl + type + "/viral/page/" + page + ".json");
+	const QUrl url(galleryUrl + type + "/" + sort + "/page/" + page + ".json");
+	loadJson(url);
+}
+
+void App::loadSubreddit(QString subreddit, QString sort, QString page)
+{
+	m_model->clear();
+	emit modelChanged();
+
+	// Creates the network request and sets the destination URL.
+	const QUrl url(galleryUrl + QString("r/" + subreddit + "/" + sort + "/page/" + page + ".json"));
 	loadJson(url);
 }
 
 void App::loadJson(QUrl url)
 {
 	QNetworkRequest request(url);
-	request.setRawHeader("Authorization", ImageLoader::clientId);
+	request.setRawHeader("Authorization", clientId);
 
 	QSslConfiguration sslConfig = request.sslConfiguration();
 	sslConfig.setPeerVerifyMode(QSslSocket::VerifyNone);
@@ -79,11 +92,14 @@ void App::loadJson(QUrl url)
 
 void App::loadBigImage(QVariantList indexPath)
 {
+	iml = 0;
+	emit imageChanged();
+
 	this->currentIndex = indexPath;
 
 	QObject* o = qvariant_cast<QObject*>(m_model->data(indexPath));
 	AbstractLoader *bigImage = qobject_cast<AbstractLoader*>(o);
-	if (bigImage->type() == 0)
+	if (bigImage->type() == 0 || bigImage->type() == 2)
 	{
 		iml = new ImageLoader(bigImage->origImageUrl(), bigImage->origImageUrl(), bigImage->title(), this);
 		connect(iml, SIGNAL(titleChanged()), this, SLOT(displayImage()));
@@ -104,6 +120,17 @@ void App::loadNext()
 	if (currentSize < m_model->size() - 1)
 	{
 		this->currentIndex[0].setValue(currentSize + 1);
+		loadBigImage(this->currentIndex);
+	}
+}
+
+void App::loadPrev()
+{
+	qDebug() << "FMI ############### BAAAAAAAAACK!!!!!";
+	int currentSize = this->currentIndex[0].toInt();
+	if (currentSize > 0)
+	{
+		this->currentIndex[0].setValue(currentSize - 1);
 		loadBigImage(this->currentIndex);
 	}
 }
@@ -143,7 +170,6 @@ void App::jsonReceived(QNetworkReply * reply)
 			reply->read(buffer.data(), available);
 			replyString = QString::fromUtf8(buffer);
 		}
-		qDebug() << replyString;
 
 		QVariantMap jsonva = jda.loadFromBuffer(replyString).toMap();
 		QVariantList jsonvaList = jsonva.find("data")->toList();
@@ -157,24 +183,25 @@ void App::jsonReceived(QNetworkReply * reply)
 
 		// iterate list
 		int i = 0;
-		for (QList<QVariant>::iterator it = jsonvaList.begin(); (it != jsonvaList.end() && i < 10); it++)
+		for (QList<QVariant>::iterator it = jsonvaList.begin(); (it != jsonvaList.end() && i < 20); it++)
 		{
 			QVariantMap image = it->toMap();
 			QString title = image["title"].toString();
 			bool is_album = image["is_album"].toBool();
 			QString link = image["link"].toString();
-			QString linkLittle = image["link"].toString().insert(link.length() - 4, "b");
 
-			qDebug() << "FMI ######### adding " << link;
 			if (!is_album)
 			{
+				QString linkLittle = image["link"].toString().insert(link.length() - 4, "b");
+				qDebug() << "FMI ######### adding pic" << link << " (" << linkLittle << ") isAlbum?" << is_album;
 				m_model->append(new ImageLoader(linkLittle, link, title, this));
 			}
-//			else
-//			{
-//				if (image.find("images") != image.end())
-//				{
-//					std::list<AlbumPic*> *albumPics = 0;
+			else
+			{
+				if (image.find("images") != image.end())
+				{
+					qDebug() << "FMI ######### adding album " << link << " isAlbum?" << is_album;
+//					std::list<AlbumPic*> *albumPics = NULL;
 //					// we are already in an album, not in the gallery
 //					QVariantList jsonAlbumList = image.find("images")->toList();
 //					for (QList<QVariant>::iterator ait = jsonAlbumList.begin(); ait != jsonAlbumList.end(); ait++)
@@ -186,12 +213,14 @@ void App::jsonReceived(QNetworkReply * reply)
 //						albumPics->push_back(new AlbumPic(albumPicUrl, description));
 //					}
 //					m_model->append(new AlbumLoader(albumPics, link, link, title, this));
-//				}
-//				else
-//				{
-//					m_model->append(new AlbumLoader(linkLittle, link, title, this));
-//				}
-//			}
+				}
+				else
+				{
+					QString linkLittle = pictureUrl + image["cover"].toString()+ "b.jpg";
+					qDebug() << "FMI ######### adding album " << link << " (" << linkLittle << ") isAlbum?" << is_album;
+					m_model->append(new ImageLoader(linkLittle, link, title, this));
+				}
+			}
 			i++;
 		}
 	}
@@ -244,6 +273,20 @@ int App::type() const
 		result = iml->type();
 	}
 	qDebug() << "FMI ########## ------------  result2:" << result;
+
+	return result;
+}
+
+QString App::html() const
+{
+	QString result = QString("<html><header></header><body></body>");
+	if (type() == 0 || type() == 2)
+	{
+		result = QString("<html><header></header><body><img src=\"" + imageUrl().toString() + "\"  width=\"100%\"/></body>");
+	}
+	else if (type() == 1)  {
+		result = QString("<head><meta http-equiv=\"refresh\" content=\"0; URL=" + imageUrl().toString() + "\"></head>");
+	}
 
 	return result;
 }

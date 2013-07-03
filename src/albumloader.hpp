@@ -18,8 +18,12 @@ class AlbumLoader : public AbstractLoader
 
 public:
 
-	AlbumLoader(const QString &imageUrl, const QString &imageUrl_orig, const QString &titel, QObject* parent = 0) : AbstractLoader(imageUrl, imageUrl_orig, titel, parent) {}
-	AlbumLoader(std::list<AlbumPic*> *albumPics, const QString &imageUrl, const QString &imageUrl_orig, const QString &titel, QObject* parent = 0) : AbstractLoader(imageUrl, imageUrl_orig, titel, parent), m_albumPics(albumPics) {}
+	AlbumLoader(const QString &imageUrl, const QString &imageUrl_orig, const QString &titel, QObject* parent = 0)
+		: AbstractLoader(imageUrl, imageUrl_orig, titel, parent)
+		, m_albumPics(NULL) {}
+	AlbumLoader(std::list<AlbumPic*> *albumPics, const QString &imageUrl, const QString &imageUrl_orig, const QString &titel, QObject* parent = 0)
+		: AbstractLoader(imageUrl, imageUrl_orig, titel, parent)
+		, m_albumPics(albumPics) {}
 	~AlbumLoader() {}
 
 	virtual void load();

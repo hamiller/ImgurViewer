@@ -13,7 +13,7 @@
 #include <QVariant>
 #include <QString>
 #include <QImage>
-
+#include <QThread>
 
 class AbstractLoader : public QObject
 {

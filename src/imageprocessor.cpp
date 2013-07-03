@@ -27,7 +27,7 @@ void ImageProcessor::start()
     QImage image;
 
 	image.loadFromData(m_data);
-	if (image.size().height() > 0) {
+	if (!image.isNull() && image.size().height() > 0) {
 		image = image.scaled(768, 500, Qt::KeepAspectRatioByExpanding);
 	}
 

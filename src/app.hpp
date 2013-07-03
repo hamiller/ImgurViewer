@@ -30,6 +30,7 @@ class App : public QObject
 
     // The model that contains the progress and image data
     Q_PROPERTY(bb::cascades::DataModel* model READ model NOTIFY modelChanged)
+    Q_PROPERTY(QString html READ html NOTIFY imageChanged)
     Q_PROPERTY(QVariant image READ image NOTIFY imageChanged)
     Q_PROPERTY(QString imageTitle READ imageTitle NOTIFY imageTitleChanged)
     Q_PROPERTY(QUrl imageUrl READ imageUrl NOTIFY imageUrlChanged)
@@ -41,8 +42,11 @@ public:
 
     // This method is called to start the loading of all images.
     Q_INVOKABLE void loadBigImage(QVariantList indexPath);
-    Q_INVOKABLE void loadGallery(QString type, QString page);
+    Q_INVOKABLE void loadGallery(QString type, QString sort, QString page);
+    Q_INVOKABLE void loadSubreddit(QString subreddit, QString sort, QString page);
     Q_INVOKABLE void loadNext();
+    Q_INVOKABLE void loadPrev();
+
 
 Q_SIGNALS:
 	void imageChanged();
@@ -64,6 +68,7 @@ private:
     // The model that contains the progress and image data
     bb::cascades::QListDataModel<QObject*>* m_model;
 
+    QString html() const;
     QVariant image() const;
     QString imageTitle() const;
     QUrl imageUrl() const;
@@ -73,7 +78,8 @@ private:
     QVariantList currentIndex;
 
     static const char* const galleryUrl;
-
+	static const char* const clientId;
+	static const char* const pictureUrl;
 
 private slots:
     void jsonReceived(QNetworkReply * reply);

@@ -1,5 +1,7 @@
 1
-3
+5
 images/Thumbs.db
+images/backbutton.png
 images/background.png
 main.qml
+models/subreddits.xml

@@ -7,19 +7,31 @@
 #include "albumloader.hpp"
 
 #include "imageprocessor.hpp"
+#include "imageloader.hpp"
 
 
 void AlbumLoader::load()
 {
-//	m_loading = true;
-//	emit loadingChanged();
-//
-//	// iterate through the pics in the album and download them
-//	std::list<AlbumPic>::iterator i;
-//	for (i = m_albumPics->begin(); i != m_albumPics->end(); ++i) {
-//		i.load();
-//	}
+	m_loading = true;
+	emit loadingChanged();
 
+	qDebug() << "FMI ############# album loader started";
+	// if the AlbumPic list is empty, we are in the gallery display mode, so just load one small pic
+	if (!m_albumPics || m_albumPics->empty()) {
+		qDebug() << "FMI ############# album loader: new Imageloader: " << m_imageUrl << ", " << m_title;
+		ImageLoader *iml = new ImageLoader(m_imageUrl, m_imageUrl, m_title, this);
+//		connect(iml, SIGNAL(titleChanged()), this, SLOT(displayImage()));
+		iml->load();
+	}
+	else {
+		qDebug() << "FMI ############# we shouldnt be here...";
+		// iterate through the pics in the album and download them
+		std::list<AlbumPic*>::iterator i;
+		for (i = m_albumPics->begin(); i != m_albumPics->end(); ++i) {
+//			i.load();
+		}
+	}
+	qDebug() << "FMI ############# album loader done.";
 }
 
 

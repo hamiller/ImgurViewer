@@ -17,29 +17,18 @@ import bb.cascades 1.0
 
 NavigationPane {
     property string type : "top"
+    property string sort : "viral"
     property int page : 0
+    property string sortReddit: "top"
+    property bool isReddit : false
     backButtonsVisible: false
+    peekEnabled: false
     id: navigationPane
     firstPage: Page {
         actionBarVisibility: ChromeVisibility.Visible
         Container {
             background: Color.Black
 
-            
-            // The button to start the loading of the images
-//	        Button {
-//	            horizontalAlignment: HorizontalAlignment.Center
-//	            verticalAlignment: VerticalAlignment.Center
-//	
-//	            text: qsTr("Load gallery")
-//	
-//	            onClicked: {
-////	                _app.loadImages()
-//                    _app.loadGallery("top", "1")
-//                    visible = false
-//	                listView.visible = true
-//	            }
-//	        }
 	        // The ListView that shows the progress of loading and result images
 	        ListView {
 	            id: listView
@@ -84,8 +73,7 @@ NavigationPane {
                 onTriggered: {
                     var curr_item = dataModel.data(indexPath)
                     _app.loadBigImage(indexPath)
-                    // open page for picture
-                    openPicture(curr_item)
+                    navigationPane.push(pgDetail)
                 }
                 
 	        }
@@ -94,7 +82,7 @@ NavigationPane {
                     orientation: LayoutOrientation.LeftToRight
                 }
                 DropDown {
-                    preferredWidth: 300
+                    preferredWidth: 100
                     id: galleryType
                     selectedIndex: 0
                     Option {
@@ -111,23 +99,46 @@ NavigationPane {
                         value: "new"
                     }
                     onSelectedIndexChanged: {
-                        //                    console.log("FMI ########################## changed something...")
                         type = selectedValue
-                        _app.loadGallery(type, page)
+                        _app.loadGallery(type, sort, page)
+                    }
+                }
+                DropDown {
+                    preferredWidth: 50
+                    id: gallerySort
+                    selectedIndex: 0
+                    Option {
+                        text: "Viral"
+                        value: "viral"
+                    }
+                    Option {
+                        text: "Time"
+                        value: "time"
+                    }
+                    onSelectedIndexChanged: {
+                        sort = selectedValue
+                        _app.loadGallery(type, sort, page)
+                    }
+                }
+                Button {
+                    text: "r"
+                    preferredWidth: 50
+                    onClicked: {
+                        navigationPane.push(pgSubreddit)
                     }
                 }
                 Label {
                     preferredWidth: 200
-                    text: "Page " + page
+                    text: page
                     textStyle.textAlign: TextAlign.Center
-
+                    verticalAlignment: VerticalAlignment.Center
                 }
                 Button {
                     text: "+"
                     preferredWidth: 100
                     onClicked: {
                         page++
-                        _app.loadGallery(type, page)
+                        _app.loadGallery(type, sort, page)
                     }
                 }
                 Button {
@@ -136,7 +147,7 @@ NavigationPane {
                     onClicked: {
                         if (page > 0) {
                         	page --
-                        	_app.loadGallery(type, page)
+                        	_app.loadGallery(type, sort, page)
                         }
                     }
                 }
@@ -148,109 +159,161 @@ NavigationPane {
     // other views
     attachedObjects: [
         // view for specific picture
-        ComponentDefinition {
-            id: detailedPictureView
-            content: Page {
-                id: pgDetail
-                paneProperties: NavigationPaneProperties {
-                    backButton: ActionItem {
-                        onTriggered: {
-                            navigationPane.pop();
+        Page {
+            id: pgDetail
+            content: Container {
+                property int positionX
+                property int positionY
+                property int indexPath
+                property real dragThreshold: 40
+                property real currentY: 0
+                layout: DockLayout {}
+
+                Container {
+                    bottomPadding: 25
+                    horizontalAlignment: HorizontalAlignment.Center
+                    verticalAlignment: VerticalAlignment.Bottom
+                    ProgressIndicator {
+                        id: progressIndicator
+                        opacity: 0
+                    }
+                }
+
+                ScrollView {
+                    scrollViewProperties {
+                        scrollMode: ScrollMode.Vertical
+                        pinchToZoomEnabled: true
+                    }
+	                WebView {
+	                    id: webviewProvider
+	                    html: _app.html
+	                    enabled: true
+	                    visible: true
+	
+	                    onLoadProgressChanged: {
+	                        // Update the ProgressBar while loading.
+	                        progressIndicator.value = loadProgress / 100.0
+	                    }
+	                    onLoadingChanged: {
+	                        if (loadRequest.status == WebLoadStatus.Started) {
+	                            // Show the ProgressBar when loading started.
+	                            progressIndicator.opacity = 1.0
+	                        } else if (loadRequest.status == WebLoadStatus.Succeeded) {
+	                            // Hide the ProgressBar when loading is complete.
+	                            progressIndicator.opacity = 0.0;
+	                        } else if (loadRequest.status == WebLoadStatus.Failed) {
+	                            // If loading failed, fallback to inline HTML, by setting the HTML property directly.
+	                            html = "<html><head><title>Fallback HTML on Loading Failed</title><style>* { margin: 0px; padding 0px; }body { font-size: 48px; font-family: monospace; border: 1px solid #444; padding: 4px; }</style> </head> <body>Oh ooh, loading of the URL that was set on this WebView failed. Perhaps you are not connected to the Internet?</body></html>"
+	                            progressIndicator.opacity = 0.0
+	                        }
+	                    }
+	                }
+	            }
+                Container {
+                    horizontalAlignment: HorizontalAlignment.Center
+                    background: Color.Black
+                    Label {
+                        id: pictureTitle
+                        multiline: true
+                        text: _app.imageTitle
+                        textStyle.color: Color.White
+                    }
+                }
+                onTouch: {
+                    if (event.isDown()) {
+                        positionX = event.windowX
+                        positionY = event.windowY
+                    } else if (event.isUp()) {
+                        if (event.windowY < positionY) {
+                        	currentY = positionY - event.windowY;
+                        }
+                        else {
+                        	currentY = event.windowY - positionY
+                        }
+                        
+                        if (positionX > event.windowX && currentY < dragThreshold) {
+                            positionX = 0
+                            _app.loadNext()
+                        } else if (positionX < event.windowX && currentY < dragThreshold) {
+                            positionX = 0
+                            _app.loadPrev()
+                        } else if (positionX == event.windowX && positionY == event.windowY) {
+                            pictureTitle.visible = !pictureTitle.visible
                         }
                     }
                 }
-                content: Container {
-                    property int positionX
-                    property int positionY
-                    property int indexPath
-                    layout: DockLayout {}
-                    //                    ActivityIndicator {
-//                        horizontalAlignment: HorizontalAlignment.Center
-//                        verticalAlignment: VerticalAlignment.Center
-//                        preferredHeight: 300
-//                        visible: _app.image.loading
-//                        running: _app.image.loading
-//                    }
-                    
-                    Container {
-                        bottomPadding: 25
-                        horizontalAlignment: HorizontalAlignment.Center
-                        verticalAlignment: VerticalAlignment.Bottom
-                        ProgressIndicator {
-                            id: progressIndicator
-                            opacity: 0
-                        }
-                    }
-                    
-                    WebView {
-                        id: webviewProvider
-                        url: _app.imageUrl
-                        visible: _app.type > 0
-                        enabled: _app.type > 0
 
-                        onLoadProgressChanged: {
-                            // Update the ProgressBar while loading.
-                            progressIndicator.value = loadProgress / 100.0
-                        }
-                        onLoadingChanged: {
-                            if (loadRequest.status == WebLoadStatus.Started) {
-                                // Show the ProgressBar when loading started.
-                                progressIndicator.opacity = 1.0
-                            } else if (loadRequest.status == WebLoadStatus.Succeeded) {
-                                // Hide the ProgressBar when loading is complete.
-                                progressIndicator.opacity = 0.0;
-                            } else if (loadRequest.status == WebLoadStatus.Failed) {
-                                // If loading failed, fallback to inline HTML, by setting the HTML property directly.
-                                html = "<html><head><title>Fallback HTML on Loading Failed</title><style>* { margin: 0px; padding 0px; }body { font-size: 48px; font-family: monospace; border: 1px solid #444; padding: 4px; }</style> </head> <body>Oh ooh, loading of the URL that was set on this WebView failed. Perhaps you are not connected to the Internet?</body></html>"
-                                progressIndicator.opacity = 0.0
-                            }
-                        }
-                    }
-
+				Container {
+                    horizontalAlignment: HorizontalAlignment.Left
+                    verticalAlignment: VerticalAlignment.Bottom
+                    
                     ImageView {
-                        id: imgView
-                        objectName: "imgView"
-                        loadEffect: ImageViewLoadEffect.FadeZoom
-                        scalingMethod: ScalingMethod.AspectFill
-                        image: _app.image
-                        visible: _app.type == 0
-                        enabled: _app.type == 0
+                        imageSource: "asset:///images/backbutton.png"
+                        verticalAlignment: verticalAlignment.Center
+                        onTouch: {
+	                    	if (event.isUp()) {
+	                    	    isReddit = false;
+	                        	navigationPane.pop(navigationPane);
+	                        }
+	                    }
+	                }
+				}
+            
+            }
+        },
+        
+        Page {
+            id: pgSubreddit
+            content: Container {
+                background: Color.Black
+                ListView {
+                    dataModel: XmlDataModel {
+                        source: "models/subreddits.xml"
                     }
-                    Container {
-                        
-                        leftPadding: 20
-                        background: Color.Black
-                        Label {
-                            id: pictureTitle
-                            multiline: true
-                            text: _app.imageTitle
-                            textStyle.color: Color.White
-                        }
+                    onTriggered: {
+                        var selectedItem = dataModel.data(indexPath);
+                        _app.loadSubreddit(selectedItem.title, sortReddit, page)
+                        isReddit = true
+                        navigationPane.pop(navigationPane);
                     }
-                    onTouch: {
-                        if (event.isDown()) {
-                            positionX = event.windowX
-                            positionY = event.windowY
-                        } else if (event.isUp()) {
-                            if (positionX > event.windowX) {
-                                positionX = 0
-                                _app.loadNext();
-                            } else if (positionX < event.windowX) {
-                                positionX = 0
-                            } else if (positionX == event.windowX && positionY == event.windowY) {
-                                pictureTitle.visible = !pictureTitle.visible
+                }
+                
+                Container {
+                    layout: StackLayout {
+                        orientation: LayoutOrientation.LeftToRight
+                    }
+                    horizontalAlignment: HorizontalAlignment.Left
+                    verticalAlignment: VerticalAlignment.Bottom
+                    ImageView {
+                        imageSource: "asset:///images/backbutton.png"
+                        verticalAlignment: verticalAlignment.Center
+                        onTouch: {
+                            if (event.isUp()) {
+                                navigationPane.pop(navigationPane);
                             }
                         }
                     }
+                    DropDown {
+                        preferredWidth: 50
+                        id: redditSort
+                        selectedIndex: 0
+                        Option {
+                            text: "Top"
+                            value: "top"
+                        }
+                        Option {
+                            text: "Time"
+                            value: "time"
+                        }
+                        onSelectedIndexChanged: {
+                            sortReddit = selectedValue
+                        }
+                    }
+
                 }
             }
+       
         }
     ]
-
-    function openPicture(item) {
-        // show detail page
-        var page = detailedPictureView.createObject();
-        navigationPane.push(page);
-    }
 
 }

@@ -26,10 +26,7 @@
 #include <QDebug>
 
 
-//QSemaphore ImageLoader::sem(2);
-//const char* const ImageLoader::pictureUrl = "https://api.imgur.com/3/image/";
-const char* const ImageLoader::pictureUrl = "http://i.imgur.com/";
-const char* const ImageLoader::clientId = "Client-ID d99014129d28197";
+//static QSemaphore sem(2);
 
 
 /**
@@ -41,7 +38,7 @@ const char* const ImageLoader::clientId = "Client-ID d99014129d28197";
  */
 void ImageLoader::load()
 {
-//	qDebug() << "FMI ########## loading. Acquire semaphore for instance " << lokaleInstanz;
+//	qDebug() << "FMI ########## waiting for Semaphore...";
 //	sem.acquire();
 //	qDebug() << "FMI ########## got one. Left semaphores: " << sem.available();
 	m_loading = true;
@@ -55,9 +52,11 @@ void ImageLoader::load()
 
 
     QNetworkReply* reply = netManager->get(request);
-    connect(reply, SIGNAL(finished()), this, SLOT(onReplyFinished()));
-//	qDebug() << "FMI ########## finished. Release instance " << lokaleInstanz;
-//	sem.release();
+    QEventLoop eventLoop;
+    connect(reply, SIGNAL(finished()), &eventLoop, SLOT(quit()));
+    qDebug() << "FMI ########## waiting for reply " << m_imageUrl;
+    eventLoop.exec();
+    onReplyFinished(reply);
 }
 
 /**
@@ -67,9 +66,14 @@ void ImageLoader::load()
  *
  * If the result was a success, it will start the thread of constructing the QImage object.
  */
-void ImageLoader::onReplyFinished()
+void ImageLoader::onReplyFinished(QNetworkReply* reply)
 {
-    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+//	qDebug() << "FMI ########## received reply, releasing semaphore...";
+//	sem.release();
+//	qDebug() << "FMI ########## semaphore released. Left: " << sem.available();
+
+
+//    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
 
     QString response;
     if (reply) {
@@ -131,28 +135,30 @@ void ImageLoader::onImageProcessingFinished(const QImage &image)
 {
 	try
 	{
-		if (image.size().height() > 0) {
-			m_image = bb::cascades::Image(fromQImage(image));
-			if (m_imageUrl.endsWith(".gif"))
-				m_type = 2;
-			else
-				m_type = 0;
+		if (!image.isNull()) {
+			if (image.size().height() > 0) {
+				m_image = bb::cascades::Image(fromQImage(image));
+				if (m_imageUrl.endsWith(".gif"))
+					m_type = 2;
+				else
+					m_type = 0;
+			}
+			else {
+				m_type = 1;
+			}
+			emit imageChanged();
+
+			m_label.clear();
+			emit labelChanged();
+
+			emit titleChanged();
 		}
-		else {
-			m_type = 1;
-		}
-		emit imageChanged();
-
-		m_label.clear();
-		emit labelChanged();
-
-		emit titleChanged();
-
 		m_loading = false;
 
 		emit loadingChanged();
 	}
 	catch (...)
 	{
+		qDebug() << "FMI ##### AAAAAAAAAAAAAAAAAAAAAAAAAAAAAHHHHH!!!!";
 	}
 }

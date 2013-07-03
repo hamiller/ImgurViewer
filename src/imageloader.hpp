@@ -41,17 +41,14 @@ public:
 
     virtual void load();
 
-	static const char* const clientId;
-	static const char* const pictureUrl;
-
-
-
+//private:
+//    static QSemaphore sem(2);
 
 private Q_SLOTS:
     /*
      * Response handler for the network operation.
      */
-    void onReplyFinished();
+    void onReplyFinished(QNetworkReply* reply);
 
     /*
      * Response handler for the image process operation.
