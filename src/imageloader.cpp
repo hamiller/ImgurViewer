@@ -52,11 +52,7 @@ void ImageLoader::load()
 
 
     QNetworkReply* reply = netManager->get(request);
-    QEventLoop eventLoop;
-    connect(reply, SIGNAL(finished()), &eventLoop, SLOT(quit()));
-    qDebug() << "FMI ########## waiting for reply " << m_imageUrl;
-    eventLoop.exec();
-    onReplyFinished(reply);
+    connect(reply, SIGNAL(finished()), this, SLOT(onReplyFinished()));
 }
 
 /**
@@ -66,14 +62,14 @@ void ImageLoader::load()
  *
  * If the result was a success, it will start the thread of constructing the QImage object.
  */
-void ImageLoader::onReplyFinished(QNetworkReply* reply)
+void ImageLoader::onReplyFinished()
 {
 //	qDebug() << "FMI ########## received reply, releasing semaphore...";
 //	sem.release();
 //	qDebug() << "FMI ########## semaphore released. Left: " << sem.available();
 
 
-//    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
 
     QString response;
     if (reply) {

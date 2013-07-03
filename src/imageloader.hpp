@@ -48,7 +48,7 @@ private Q_SLOTS:
     /*
      * Response handler for the network operation.
      */
-    void onReplyFinished(QNetworkReply* reply);
+    void onReplyFinished();
 
     /*
      * Response handler for the image process operation.
