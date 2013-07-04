@@ -19,14 +19,13 @@
 
 #include <bb/ImageData>
 
-#include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QUrl>
 #include <QDebug>
 
 
-//static QSemaphore sem(2);
+static QSemaphore sem(2);
 
 
 /**
@@ -38,21 +37,18 @@
  */
 void ImageLoader::load()
 {
-//	qDebug() << "FMI ########## waiting for Semaphore...";
-//	sem.acquire();
-//	qDebug() << "FMI ########## got one. Left semaphores: " << sem.available();
 	m_loading = true;
     emit loadingChanged();
 
-    QNetworkAccessManager* netManager = new QNetworkAccessManager(this);
-
     qDebug() << "FMI ########## loading " << m_imageUrl;
+    QNetworkAccessManager* networkAccessManager = new QNetworkAccessManager(this); // up to 6 connections at a time
+
     const QUrl url(m_imageUrl);
     QNetworkRequest request(url);
 
-
-    QNetworkReply* reply = netManager->get(request);
+    QNetworkReply* reply = networkAccessManager->get(request);
     connect(reply, SIGNAL(finished()), this, SLOT(onReplyFinished()));
+
 }
 
 /**
@@ -62,13 +58,9 @@ void ImageLoader::load()
  *
  * If the result was a success, it will start the thread of constructing the QImage object.
  */
+
 void ImageLoader::onReplyFinished()
 {
-//	qDebug() << "FMI ########## received reply, releasing semaphore...";
-//	sem.release();
-//	qDebug() << "FMI ########## semaphore released. Left: " << sem.available();
-
-
     QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
 
     QString response;

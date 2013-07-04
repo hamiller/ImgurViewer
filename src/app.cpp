@@ -32,8 +32,10 @@ const char* const App::galleryUrl = "https://api.imgur.com/3/gallery/";
 const char* const App::pictureUrl = "http://i.imgur.com/";
 const char* const App::clientId = "Client-ID d99014129d28197";
 
-App::App(QObject *parent) :
-		QObject(parent), m_model(new QListDataModel<QObject*>()), iml(NULL)
+App::App(QObject *parent)
+	: QObject(parent)
+	, m_model(new QListDataModel<QObject*>())
+	, iml(NULL)
 {
 	// Register custom type to QML
 	qmlRegisterType<AbstractLoader>();
@@ -51,6 +53,7 @@ App::App(QObject *parent) :
 
 void App::loadGallery(QString type, QString sort, QString page)
 {
+	qDebug() << "FMI ############ LOAD GALLERY";
 	m_model->clear();
 	emit modelChanged();
 
@@ -61,6 +64,8 @@ void App::loadGallery(QString type, QString sort, QString page)
 
 void App::loadSubreddit(QString subreddit, QString sort, QString page)
 {
+	qDebug() << "FMI ############ LOAD SUBREDDIT";
+
 	m_model->clear();
 	emit modelChanged();
 
@@ -71,6 +76,7 @@ void App::loadSubreddit(QString subreddit, QString sort, QString page)
 
 void App::loadJson(QUrl url)
 {
+	QNetworkAccessManager* networkAccessManager = new QNetworkAccessManager(this); // up to 6 connections at a time
 	QNetworkRequest request(url);
 	request.setRawHeader("Authorization", clientId);
 
@@ -82,12 +88,16 @@ void App::loadJson(QUrl url)
 
 	request.setSslConfiguration(sslConfig);
 
-	// Creates the network access manager and connects a custom slot to its finished signal
-	QNetworkAccessManager *networkAccessManager = new QNetworkAccessManager(this);
+	QEventLoop eventLoop;
 	connect(networkAccessManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(jsonReceived(QNetworkReply*)));
+	connect(this, SIGNAL(creationDone()), &eventLoop, SLOT(quit()));
 
 	// Sends the HTTP request.
 	networkAccessManager->get(request);
+	eventLoop.exec();
+
+	qDebug() << "FMI ######### done loading!!";
+	loadImages();
 }
 
 void App::loadBigImage(QVariantList indexPath)
@@ -126,7 +136,6 @@ void App::loadNext()
 
 void App::loadPrev()
 {
-	qDebug() << "FMI ############### BAAAAAAAAACK!!!!!";
 	int currentSize = this->currentIndex[0].toInt();
 	if (currentSize > 0)
 	{
@@ -143,6 +152,7 @@ void App::loadImages()
 	{
 		qDebug() << "FMI ######## load picture " << row;
 		qobject_cast<AbstractLoader*>(m_model->value(row))->load();
+
 	}
 }
 
@@ -177,7 +187,8 @@ void App::jsonReceived(QNetworkReply * reply)
 		if (jda.hasError())
 		{
 			bb::data::DataAccessError error = jda.error();
-			qDebug() << "JSON loading error: " << error.errorType() << ": " << error.errorMessage();
+			qDebug() << "FMI ######### JSON loading error: " << error.errorType() << ": " << error.errorMessage();
+			qDebug() << replyString;
 			return;
 		}
 
@@ -193,14 +204,14 @@ void App::jsonReceived(QNetworkReply * reply)
 			if (!is_album)
 			{
 				QString linkLittle = image["link"].toString().insert(link.length() - 4, "b");
-				qDebug() << "FMI ######### adding pic" << link << " (" << linkLittle << ") isAlbum?" << is_album;
+				qDebug() << "FMI ######### adding pic   " << link;
 				m_model->append(new ImageLoader(linkLittle, link, title, this));
 			}
 			else
 			{
 				if (image.find("images") != image.end())
 				{
-					qDebug() << "FMI ######### adding album " << link << " isAlbum?" << is_album;
+					qDebug() << "FMI ######### adding album " << link;
 //					std::list<AlbumPic*> *albumPics = NULL;
 //					// we are already in an album, not in the gallery
 //					QVariantList jsonAlbumList = image.find("images")->toList();
@@ -217,7 +228,7 @@ void App::jsonReceived(QNetworkReply * reply)
 				else
 				{
 					QString linkLittle = pictureUrl + image["cover"].toString()+ "b.jpg";
-					qDebug() << "FMI ######### adding album " << link << " (" << linkLittle << ") isAlbum?" << is_album;
+					qDebug() << "FMI ######### adding album " << link;
 					m_model->append(new ImageLoader(linkLittle, link, title, this));
 				}
 			}
@@ -228,7 +239,7 @@ void App::jsonReceived(QNetworkReply * reply)
 		qDebug() << "FMI ######### error: " << reply->errorString();
 
 	reply->deleteLater();
-	loadImages();
+	emit creationDone();
 }
 
 QVariant App::image() const
@@ -260,8 +271,6 @@ QUrl App::imageUrl() const
 	{ // check pointer
 		result.setUrl(iml->origImageUrl());
 	}
-	qDebug() << "FMI ########## ------------  result1:" << result;
-
 	return result;
 }
 
@@ -272,8 +281,6 @@ int App::type() const
 	{ // check pointer
 		result = iml->type();
 	}
-	qDebug() << "FMI ########## ------------  result2:" << result;
-
 	return result;
 }
 

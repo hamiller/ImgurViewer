@@ -16,16 +16,19 @@
 import bb.cascades 1.0
 
 NavigationPane {
-    property string type : "top"
+    property string type : "hot"
     property string sort : "viral"
     property int page : 0
-    property string sortReddit: "top"
+    property string sortReddit : "top"
     property bool isReddit : false
     backButtonsVisible: false
     peekEnabled: false
     id: navigationPane
     firstPage: Page {
         actionBarVisibility: ChromeVisibility.Visible
+        onCreationCompleted: {
+            _app.loadGallery(type, sort, page)
+        }
         Container {
             background: Color.Black
 
@@ -84,13 +87,13 @@ NavigationPane {
                 DropDown {
                     preferredWidth: 100
                     id: galleryType
-                    selectedIndex: 0
+                    title: type
                     Option {
-                        text: "Hot"
+                        text: "hot"
                         value: "hot"
                     }
                     Option {
-                        text: "Top"
+                        text: "top"
                         value: "top"
                     }
                     Option {
@@ -106,16 +109,17 @@ NavigationPane {
                 DropDown {
                     preferredWidth: 50
                     id: gallerySort
-                    selectedIndex: 0
+                    title: sort
                     Option {
-                        text: "Viral"
+                        text: "viral"
                         value: "viral"
                     }
                     Option {
-                        text: "Time"
+                        text: "time"
                         value: "time"
                     }
                     onSelectedIndexChanged: {
+                        console.log("TYPE SelectedIndex was changed to " + selectedIndex);
                         sort = selectedValue
                         _app.loadGallery(type, sort, page)
                     }
@@ -296,13 +300,13 @@ NavigationPane {
                     DropDown {
                         preferredWidth: 50
                         id: redditSort
-                        selectedIndex: 0
+                        title: sortReddit
                         Option {
-                            text: "Top"
+                            text: "top"
                             value: "top"
                         }
                         Option {
-                            text: "Time"
+                            text: "time"
                             value: "time"
                         }
                         onSelectedIndexChanged: {

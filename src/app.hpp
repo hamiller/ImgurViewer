@@ -23,6 +23,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QVector>
 #include <bb/cascades/QListDataModel>
+#include <QThread>
 
 class App : public QObject
 {
@@ -54,6 +55,7 @@ Q_SIGNALS:
 	void modelChanged();
 	void imageUrlChanged();
 	void typeChanged();
+	void creationDone();
 
 private:
 	bb::cascades::AbstractPane *root;
@@ -61,6 +63,7 @@ private:
     void loadImages();
     void loadJson(QUrl url);
 
+    QThread *thread;
 
     // The accessor method for the property
     bb::cascades::DataModel* model() const;

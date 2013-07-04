@@ -36,19 +36,19 @@ public:
      * @param imageUrl The url to load the image from.
      * @param imageUrl_orig is the original url of the image
      */
-    ImageLoader(const QString &imageUrl, const QString &imageUrl_orig, const QString &titel, QObject* parent = 0) : AbstractLoader(imageUrl, imageUrl_orig, titel, parent) {}
+    ImageLoader(const QString &imageUrl, const QString &imageUrl_orig, const QString &titel, QObject* parent = 0)
+    	: AbstractLoader(imageUrl, imageUrl_orig, titel, parent) {}
     ~ImageLoader() {}
 
     virtual void load();
+    void connectionStarted();
 
 //private:
 //    static QSemaphore sem(2);
 
 private Q_SLOTS:
-    /*
-     * Response handler for the network operation.
-     */
-    void onReplyFinished();
+//    void onReplyFinished(QNetworkReply *reply);
+	void onReplyFinished();
 
     /*
      * Response handler for the image process operation.

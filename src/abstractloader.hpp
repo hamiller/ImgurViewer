@@ -14,6 +14,7 @@
 #include <QString>
 #include <QImage>
 #include <QThread>
+#include <QNetworkAccessManager>
 
 class AbstractLoader : public QObject
 {
@@ -49,7 +50,6 @@ public:
 		, m_title(titel)
 		, m_type(0) {}
     virtual ~AbstractLoader(){}
-
 	template <class T> friend inline T myqobject_cast(AbstractLoader *object);
 
 	virtual void load() = 0;
@@ -62,12 +62,17 @@ public:
 	QString origImageUrl() const;
 	int type() const;
 
-	Q_SIGNALS:
-	    // The change notification signals of the properties
-	    void imageChanged();
-	    void labelChanged();
-	    void titleChanged();
-	    void loadingChanged();
+	void finished(const QImage &image);
+
+
+Q_SIGNALS:
+	// The change notification signals of the properties
+	void imageChanged();
+	void labelChanged();
+	void titleChanged();
+	void loadingChanged();
+
+	void finished();
 };
 
 template <class T>
