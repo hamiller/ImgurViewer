@@ -19,7 +19,6 @@ device {
 
         SOURCES +=  $$quote($$BASEDIR/src/AlbumPic.cpp) \
                  $$quote($$BASEDIR/src/abstractloader.cpp) \
-                 $$quote($$BASEDIR/src/albumloader.cpp) \
                  $$quote($$BASEDIR/src/app.cpp) \
                  $$quote($$BASEDIR/src/imageloader.cpp) \
                  $$quote($$BASEDIR/src/imageprocessor.cpp) \
@@ -27,7 +26,6 @@ device {
 
         HEADERS +=  $$quote($$BASEDIR/src/AlbumPic.h) \
                  $$quote($$BASEDIR/src/abstractloader.hpp) \
-                 $$quote($$BASEDIR/src/albumloader.hpp) \
                  $$quote($$BASEDIR/src/app.hpp) \
                  $$quote($$BASEDIR/src/imageloader.hpp) \
                  $$quote($$BASEDIR/src/imageprocessor.hpp)
@@ -50,7 +48,6 @@ device {
 
         SOURCES +=  $$quote($$BASEDIR/src/AlbumPic.cpp) \
                  $$quote($$BASEDIR/src/abstractloader.cpp) \
-                 $$quote($$BASEDIR/src/albumloader.cpp) \
                  $$quote($$BASEDIR/src/app.cpp) \
                  $$quote($$BASEDIR/src/imageloader.cpp) \
                  $$quote($$BASEDIR/src/imageprocessor.cpp) \
@@ -58,7 +55,6 @@ device {
 
         HEADERS +=  $$quote($$BASEDIR/src/AlbumPic.h) \
                  $$quote($$BASEDIR/src/abstractloader.hpp) \
-                 $$quote($$BASEDIR/src/albumloader.hpp) \
                  $$quote($$BASEDIR/src/app.hpp) \
                  $$quote($$BASEDIR/src/imageloader.hpp) \
                  $$quote($$BASEDIR/src/imageprocessor.hpp)
@@ -83,7 +79,6 @@ simulator {
 
         SOURCES +=  $$quote($$BASEDIR/src/AlbumPic.cpp) \
                  $$quote($$BASEDIR/src/abstractloader.cpp) \
-                 $$quote($$BASEDIR/src/albumloader.cpp) \
                  $$quote($$BASEDIR/src/app.cpp) \
                  $$quote($$BASEDIR/src/imageloader.cpp) \
                  $$quote($$BASEDIR/src/imageprocessor.cpp) \
@@ -91,7 +86,6 @@ simulator {
 
         HEADERS +=  $$quote($$BASEDIR/src/AlbumPic.h) \
                  $$quote($$BASEDIR/src/abstractloader.hpp) \
-                 $$quote($$BASEDIR/src/albumloader.hpp) \
                  $$quote($$BASEDIR/src/app.hpp) \
                  $$quote($$BASEDIR/src/imageloader.hpp) \
                  $$quote($$BASEDIR/src/imageprocessor.hpp)

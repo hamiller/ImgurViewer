@@ -4,4 +4,4 @@ images/Thumbs.db
 images/backbutton.png
 images/background.png
 main.qml
-subreddits.xml
+models/subreddits.xml

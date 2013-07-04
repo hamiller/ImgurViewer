@@ -31,16 +31,21 @@ const char* const App::galleryUrl = "https://api.imgur.com/3/gallery/";
 //const char* const ImageLoader::pictureUrl = "https://api.imgur.com/3/image/";
 const char* const App::pictureUrl = "http://i.imgur.com/";
 const char* const App::clientId = "Client-ID d99014129d28197";
+const int listIncrease = 12;
+
 
 App::App(QObject *parent)
 	: QObject(parent)
 	, m_model(new QListDataModel<QObject*>())
+	, m_wholeModel(new QListDataModel<QObject*>())
 	, iml(NULL)
+	, currentPosition(0)
 {
 	// Register custom type to QML
 	qmlRegisterType<AbstractLoader>();
 
 	m_model->setParent(this);
+	m_wholeModel->setParent(this);
 
 	// Create the UI
 	QmlDocument* qml = QmlDocument::create("asset:///main.qml").parent(this);
@@ -55,7 +60,8 @@ void App::loadGallery(QString type, QString sort, QString page)
 {
 	qDebug() << "FMI ############ LOAD GALLERY";
 	m_model->clear();
-	emit modelChanged();
+	m_wholeModel->clear();
+	currentPosition = 0;
 
 	// Creates the network request and sets the destination URL.
 	const QUrl url(galleryUrl + type + "/" + sort + "/page/" + page + ".json");
@@ -65,9 +71,9 @@ void App::loadGallery(QString type, QString sort, QString page)
 void App::loadSubreddit(QString subreddit, QString sort, QString page)
 {
 	qDebug() << "FMI ############ LOAD SUBREDDIT";
-
 	m_model->clear();
-	emit modelChanged();
+	m_wholeModel->clear();
+	currentPosition = 0;
 
 	// Creates the network request and sets the destination URL.
 	const QUrl url(galleryUrl + QString("r/" + subreddit + "/" + sort + "/page/" + page + ".json"));
@@ -97,31 +103,32 @@ void App::loadJson(QUrl url)
 	eventLoop.exec();
 
 	qDebug() << "FMI ######### done loading!!";
-	loadImages();
+	loadImages(0);
+}
+
+void App::listBottomReached()
+{
+	qDebug() << "FMI ######### listBottomReached!!";
+	loadImages(currentPosition +1);
 }
 
 void App::loadBigImage(QVariantList indexPath)
 {
-	iml = 0;
-	emit imageChanged();
-
 	this->currentIndex = indexPath;
 
 	QObject* o = qvariant_cast<QObject*>(m_model->data(indexPath));
 	AbstractLoader *bigImage = qobject_cast<AbstractLoader*>(o);
+	qDebug()<< "FMI +++++++++++++++ " << bigImage->origImageUrl() << ", " << bigImage->origImageUrl() << ", " << bigImage->title() << ", " << bigImage->type();
+
+	iml = bigImage;
+	iml->image() = 0;
+	displayImage();
+
 	if (bigImage->type() == 0 || bigImage->type() == 2)
 	{
-		iml = new ImageLoader(bigImage->origImageUrl(), bigImage->origImageUrl(), bigImage->title(), this);
-		connect(iml, SIGNAL(titleChanged()), this, SLOT(displayImage()));
-		iml->load();
+		connect(iml, SIGNAL(imageChanged()), this, SLOT(displayImage()));
+		iml->loadBigImage();
 	}
-//	else
-//	{
-//		// hm, this is not an image, instead something different
-//		// -> lets get the next level of json infos
-//		QUrl url(bigImage->origImageUrl());
-//		loadJson(url);
-//	}
 }
 
 void App::loadNext()
@@ -144,17 +151,26 @@ void App::loadPrev()
 	}
 }
 
-void App::loadImages()
+
+void App::loadImages(int start)
 {
+	int stop = start + listIncrease;
 	// Call the load() method for each ImageLoader instance inside the model
-	qDebug() << "FMI ######## model size:" << m_model->size();
-	for (int row = 0; row < m_model->size(); ++row)
+	qDebug() << "FMI ######## model size:" << m_model->size() << " reading " << start << "->" << stop;
+	int row = start;
+	for (; row < stop && row < m_wholeModel->size(); ++row)
 	{
 		qDebug() << "FMI ######## load picture " << row;
-		qobject_cast<AbstractLoader*>(m_model->value(row))->load();
+		AbstractLoader *loader = qobject_cast<AbstractLoader*>(m_wholeModel->value(row));
+		loader->load();
 
+		m_model->append(loader);
+
+		currentPosition++;
 	}
+	emit modelChanged();
 }
+
 
 bb::cascades::DataModel* App::model() const
 {
@@ -194,7 +210,7 @@ void App::jsonReceived(QNetworkReply * reply)
 
 		// iterate list
 		int i = 0;
-		for (QList<QVariant>::iterator it = jsonvaList.begin(); (it != jsonvaList.end() && i < 20); it++)
+		for (QList<QVariant>::iterator it = jsonvaList.begin(); (it != jsonvaList.end()); it++)
 		{
 			QVariantMap image = it->toMap();
 			QString title = image["title"].toString();
@@ -205,32 +221,13 @@ void App::jsonReceived(QNetworkReply * reply)
 			{
 				QString linkLittle = image["link"].toString().insert(link.length() - 4, "b");
 				qDebug() << "FMI ######### adding pic   " << link;
-				m_model->append(new ImageLoader(linkLittle, link, title, this));
+				m_wholeModel->append(new ImageLoader(linkLittle, link, title, 0, this));
 			}
 			else
 			{
-				if (image.find("images") != image.end())
-				{
-					qDebug() << "FMI ######### adding album " << link;
-//					std::list<AlbumPic*> *albumPics = NULL;
-//					// we are already in an album, not in the gallery
-//					QVariantList jsonAlbumList = image.find("images")->toList();
-//					for (QList<QVariant>::iterator ait = jsonAlbumList.begin(); ait != jsonAlbumList.end(); ait++)
-//					{
-//						QVariantMap albumImage = ait->toMap();
-//
-//						QString description = albumImage["description"].toString();
-//						QString albumPicUrl = albumImage["link"].toString();
-//						albumPics->push_back(new AlbumPic(albumPicUrl, description));
-//					}
-//					m_model->append(new AlbumLoader(albumPics, link, link, title, this));
-				}
-				else
-				{
-					QString linkLittle = pictureUrl + image["cover"].toString()+ "b.jpg";
-					qDebug() << "FMI ######### adding album " << link;
-					m_model->append(new ImageLoader(linkLittle, link, title, this));
-				}
+				QString linkLittle = pictureUrl + image["cover"].toString()+ "b.jpg";
+				qDebug() << "FMI ######### adding album " << link;
+				m_wholeModel->append(new ImageLoader(linkLittle, link, title, 1, this));
 			}
 			i++;
 		}
@@ -276,7 +273,7 @@ QUrl App::imageUrl() const
 
 int App::type() const
 {
-	int result;
+	int result = 1;
 	if (iml)
 	{ // check pointer
 		result = iml->type();
@@ -301,6 +298,4 @@ QString App::html() const
 void App::displayImage()
 {
 	emit imageChanged();
-	emit imageTitleChanged();
-	emit imageUrlChanged();
 }

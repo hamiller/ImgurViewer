@@ -22,7 +22,7 @@ class AbstractLoader : public QObject
 
     Q_PROPERTY(QVariant image READ image NOTIFY imageChanged)
     Q_PROPERTY(QString label READ label NOTIFY labelChanged)
-    Q_PROPERTY(QString title READ title NOTIFY titleChanged)
+    Q_PROPERTY(QString title READ title NOTIFY labelChanged)
     Q_PROPERTY(bool loading READ loading NOTIFY loadingChanged)
 
 
@@ -42,17 +42,18 @@ protected:
 
 
 public:
-    AbstractLoader(const QString &imageUrl, const QString &imageUrl_orig, const QString &titel, QObject* parent = 0)
+    AbstractLoader(const QString &imageUrl, const QString &imageUrl_orig, const QString &titel, const int type, QObject* parent = 0)
 		: QObject(parent)
 		, m_loading(false)
 		, m_imageUrl(imageUrl)
     	, m_imageUrl_orig(imageUrl_orig)
 		, m_title(titel)
-		, m_type(0) {}
+		, m_type(type) {}
     virtual ~AbstractLoader(){}
 	template <class T> friend inline T myqobject_cast(AbstractLoader *object);
 
 	virtual void load() = 0;
+	virtual void loadBigImage() = 0;
 
 	QVariant image() const;
 	QString label() const;
@@ -69,9 +70,7 @@ Q_SIGNALS:
 	// The change notification signals of the properties
 	void imageChanged();
 	void labelChanged();
-	void titleChanged();
 	void loadingChanged();
-
 	void finished();
 };
 

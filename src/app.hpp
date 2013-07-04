@@ -17,13 +17,11 @@
 #define APP_HPP
 
 #include "imageloader.hpp"
-#include "albumloader.hpp"
 
 #include <bb/cascades/AbstractPane>
 #include <QtCore/QObject>
 #include <QtCore/QVector>
 #include <bb/cascades/QListDataModel>
-#include <QThread>
 
 class App : public QObject
 {
@@ -33,9 +31,9 @@ class App : public QObject
     Q_PROPERTY(bb::cascades::DataModel* model READ model NOTIFY modelChanged)
     Q_PROPERTY(QString html READ html NOTIFY imageChanged)
     Q_PROPERTY(QVariant image READ image NOTIFY imageChanged)
-    Q_PROPERTY(QString imageTitle READ imageTitle NOTIFY imageTitleChanged)
-    Q_PROPERTY(QUrl imageUrl READ imageUrl NOTIFY imageUrlChanged)
-    Q_PROPERTY(int type READ type NOTIFY typeChanged)
+    Q_PROPERTY(QString imageTitle READ imageTitle NOTIFY imageChanged)
+    Q_PROPERTY(QUrl imageUrl READ imageUrl NOTIFY imageChanged)
+    Q_PROPERTY(int type READ type NOTIFY imageChanged)
 
 
 public:
@@ -47,38 +45,30 @@ public:
     Q_INVOKABLE void loadSubreddit(QString subreddit, QString sort, QString page);
     Q_INVOKABLE void loadNext();
     Q_INVOKABLE void loadPrev();
+    Q_INVOKABLE void listBottomReached();
 
 
 Q_SIGNALS:
 	void imageChanged();
-	void imageTitleChanged();
 	void modelChanged();
-	void imageUrlChanged();
-	void typeChanged();
 	void creationDone();
 
 private:
 	bb::cascades::AbstractPane *root;
-
-    void loadImages();
+    void loadImages(int start);
     void loadJson(QUrl url);
-
-    QThread *thread;
-
-    // The accessor method for the property
-    bb::cascades::DataModel* model() const;
-
-    // The model that contains the progress and image data
-    bb::cascades::QListDataModel<QObject*>* m_model;
-
-    QString html() const;
-    QVariant image() const;
-    QString imageTitle() const;
-    QUrl imageUrl() const;
-    // 0 = normal image, 1 = animated gif, 2 = album
-    int type() const;
+    bb::cascades::QListDataModel<QObject*>* m_model;		// The model that contains the progress and image data for the listview
+    bb::cascades::QListDataModel<QObject*>* m_wholeModel;	// The model with all picture data form json
     AbstractLoader* iml;
-    QVariantList currentIndex;
+    QVariantList currentIndex; 								// index of selected path in listview
+    int currentPosition;
+
+    bb::cascades::DataModel* model() const;					// The accessor method for the property
+    QString html() const;
+	QVariant image() const;
+	QString imageTitle() const;
+	QUrl imageUrl() const;
+	int type() const; 										// 0 = normal image, 1 = album, 2 = animated gif
 
     static const char* const galleryUrl;
 	static const char* const clientId;

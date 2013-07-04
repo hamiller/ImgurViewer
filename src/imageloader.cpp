@@ -25,22 +25,27 @@
 #include <QDebug>
 
 
-static QSemaphore sem(2);
+void ImageLoader::loadBigImage()
+{
+	m_loading = true;
+	emit loadingChanged();
 
+	qDebug() << "FMI ########## start loading " << m_imageUrl_orig;
+	QNetworkAccessManager* networkAccessManager = new QNetworkAccessManager(this); // up to 6 connections at a time
 
-/**
- * ImageLoader::load()
- *
- * Instruct the QNetworkAccessManager to initialize a network request in asynchronous manner.
- *
- * Also, setup the signal handler to receive the event indicating the network response.
- */
+	const QUrl url(m_imageUrl);
+	QNetworkRequest request(url);
+
+	QNetworkReply* reply = networkAccessManager->get(request);
+	connect(reply, SIGNAL(finished()), this, SLOT(onReplyFinished()));
+}
+
 void ImageLoader::load()
 {
 	m_loading = true;
     emit loadingChanged();
 
-    qDebug() << "FMI ########## loading " << m_imageUrl;
+    qDebug() << "FMI ########## start loading " << m_imageUrl;
     QNetworkAccessManager* networkAccessManager = new QNetworkAccessManager(this); // up to 6 connections at a time
 
     const QUrl url(m_imageUrl);
@@ -48,7 +53,6 @@ void ImageLoader::load()
 
     QNetworkReply* reply = networkAccessManager->get(request);
     connect(reply, SIGNAL(finished()), this, SLOT(onReplyFinished()));
-
 }
 
 /**
@@ -126,21 +130,13 @@ void ImageLoader::onImageProcessingFinished(const QImage &image)
 		if (!image.isNull()) {
 			if (image.size().height() > 0) {
 				m_image = bb::cascades::Image(fromQImage(image));
-				if (m_imageUrl.endsWith(".gif"))
-					m_type = 2;
-				else
-					m_type = 0;
-			}
-			else {
-				m_type = 1;
 			}
 			emit imageChanged();
 
 			m_label.clear();
 			emit labelChanged();
-
-			emit titleChanged();
 		}
+
 		m_loading = false;
 
 		emit loadingChanged();

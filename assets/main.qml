@@ -38,7 +38,19 @@ NavigationPane {
                 layout: GridListLayout {}	
 	            visible: true
 	            dataModel: _app.model
-	            listItemComponents: ListItemComponent {
+	            
+                // add action for loading additional data after scrolling to bottom
+                attachedObjects: [
+                    ListScrollStateHandler {
+                        id: scrollStateHandler
+                        onAtEndChanged: {
+                            if (scrollStateHandler.atEnd) {
+                                _app.listBottomReached();
+                            }
+                        }
+                    }
+                ]
+                listItemComponents: ListItemComponent {
 	                type: ""
 	                Container {
 	                    preferredHeight: 500
@@ -171,6 +183,7 @@ NavigationPane {
                 property int indexPath
                 property real dragThreshold: 40
                 property real currentY: 0
+                
                 layout: DockLayout {}
 
                 Container {
@@ -188,41 +201,44 @@ NavigationPane {
                         scrollMode: ScrollMode.Vertical
                         pinchToZoomEnabled: true
                     }
-	                WebView {
-	                    id: webviewProvider
-	                    html: _app.html
-	                    enabled: true
-	                    visible: true
+
+                    Container {
+                        horizontalAlignment: HorizontalAlignment.Center
+                        background: Color.Black
+                        Label {
+                            id: pictureTitle
+                            multiline: true
+                            text: _app.imageTitle
+                            textStyle.color: Color.White
+                        }
+                    
+	                    WebView {
+		                    id: webviewProvider
+		                    html: _app.html
+		                    enabled: true
+		                    visible: true
 	
-	                    onLoadProgressChanged: {
-	                        // Update the ProgressBar while loading.
-	                        progressIndicator.value = loadProgress / 100.0
-	                    }
-	                    onLoadingChanged: {
-	                        if (loadRequest.status == WebLoadStatus.Started) {
-	                            // Show the ProgressBar when loading started.
-	                            progressIndicator.opacity = 1.0
-	                        } else if (loadRequest.status == WebLoadStatus.Succeeded) {
-	                            // Hide the ProgressBar when loading is complete.
-	                            progressIndicator.opacity = 0.0;
-	                        } else if (loadRequest.status == WebLoadStatus.Failed) {
-	                            // If loading failed, fallback to inline HTML, by setting the HTML property directly.
-	                            html = "<html><head><title>Fallback HTML on Loading Failed</title><style>* { margin: 0px; padding 0px; }body { font-size: 48px; font-family: monospace; border: 1px solid #444; padding: 4px; }</style> </head> <body>Oh ooh, loading of the URL that was set on this WebView failed. Perhaps you are not connected to the Internet?</body></html>"
-	                            progressIndicator.opacity = 0.0
-	                        }
-	                    }
-	                }
+	                        onLoadProgressChanged: {
+	                            // Update the ProgressBar while loading.
+		                        progressIndicator.value = loadProgress / 100.0
+		                    }
+		                    onLoadingChanged: {
+		                        if (loadRequest.status == WebLoadStatus.Started) {
+		                            // Show the ProgressBar when loading started.
+		                            progressIndicator.opacity = 1.0
+		                        } else if (loadRequest.status == WebLoadStatus.Succeeded) {
+		                            // Hide the ProgressBar when loading is complete.
+		                            progressIndicator.opacity = 0.0;
+		                        } else if (loadRequest.status == WebLoadStatus.Failed) {
+		                            // If loading failed, fallback to inline HTML, by setting the HTML property directly.
+		                            html = "<html><head><title>Fallback HTML on Loading Failed</title><style>* { margin: 0px; padding 0px; }body { font-size: 48px; font-family: monospace; border: 1px solid #444; padding: 4px; }</style> </head> <body>Oh ooh, loading of the URL that was set on this WebView failed. Perhaps you are not connected to the Internet?</body></html>"
+		                            progressIndicator.opacity = 0.0
+		                        }
+		                    }
+		                }
+		            }
 	            }
-                Container {
-                    horizontalAlignment: HorizontalAlignment.Center
-                    background: Color.Black
-                    Label {
-                        id: pictureTitle
-                        multiline: true
-                        text: _app.imageTitle
-                        textStyle.color: Color.White
-                    }
-                }
+                
                 onTouch: {
                     if (event.isDown()) {
                         positionX = event.windowX
