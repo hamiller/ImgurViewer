@@ -6,47 +6,55 @@ Page {
         background: Color.Black
         ListView {
             id: suredditEntries
-            dataModel: XmlDataModel {
-                source: "models/subreddits2.xml"
-            }
-            onDataModelChanged: {
-                console.log("FMI ##########  Data model changed!");
-            }
+            dataModel: _app.modelSubreddit
 
-            listItemComponents: ListItemComponent {
-                type: "listItem"
-                StandardListItem {
-                    id: subredditItem
-                    title: ListItemData.title
-                    
-                    contextActions: ActionSet {
-                        title: "Subreddit Actions"
+            listItemComponents: [
+                ListItemComponent {
+                    type: "header"
 
-                        ActionItem {
-                            title: "Open"
-                            imageSource: "asset:///images/ic_next.png"
-                            onTriggered: {
-                                subredditItem.ListItem.view.subRedditLoad(subredditItem.title)
-                            }
-                        }
-                        ActionItem {
-                            title: "Edit"
-                            imageSource: "asset:///images/ic_edit.png"
-                            onTriggered: {
-                                subredditItem.ListItem.view.subRedditEdit(subredditItem.title)
-                            }
-                        }
-                        ActionItem {
-                            title: "Delete"
-                            imageSource: "asset:///images/ic_delete.png"
-                            onTriggered: {
-                                subredditItem.ListItem.view.subRedditDelete(subredditItem.title)
-                            }
-                        }
-
+                    Label {
+                        text: "Subreddits"
                     }
+                },
+                ListItemComponent {
+                    type: "item"
+
+	                StandardListItem {
+	                    id: subredditItem
+	                    title: ListItemData.title
+
+	                    contextActions: ActionSet {
+	                        title: "Subreddit Actions"
+
+	                        ActionItem {
+	                            title: "Open"
+	                            imageSource: "asset:///images/ic_next.png"
+	                            onTriggered: {
+	                                subredditItem.ListItem.view.subRedditLoad(subredditItem.title)
+	                            }
+	                        }
+	                        ActionItem {
+	                            title: "Edit"
+	                            imageSource: "asset:///images/ic_edit.png"
+	                            onTriggered: {
+	                                subredditItem.ListItem.view.subRedditEdit(subredditItem.title)
+	                            }
+	                        }
+	                        ActionItem {
+	                            title: "Delete"
+	                            imageSource: "asset:///images/ic_delete.png"
+	                            onTriggered: {
+	                                subredditItem.ListItem.view.subRedditDelete(subredditItem.title)
+	                            }
+	                        }
+
+	                    }
+	                }
+
                 }
-            }
+        
+	        ]
+            
             function subRedditLoad(selectedItemTitle) {
                 _app.loadSubreddit(selectedItemTitle, sortReddit, page)
                 navigationPane.push(navigationPaneSubreddit);
@@ -61,7 +69,7 @@ Page {
             }
             onTriggered: {
                 var selectedItem = dataModel.data(indexPath)
-                subRedditLoad(selectedItem)
+                subRedditLoad(selectedItem.title)
             }
         }
 

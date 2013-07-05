@@ -63,7 +63,7 @@ App::App(QObject *parent)
 
 void App::loadGallery(QString type, QString sort, QString page)
 {
-	qDebug() << "FMI ############ LOAD GALLERY";
+	qDebug() << "FMI ############ LOAD GALLERY type:"<< type << " sort:" << " page:" << page;
 	m_model->clear();
 	m_wholeModel->clear();
 	currentPosition = 0;
@@ -75,7 +75,7 @@ void App::loadGallery(QString type, QString sort, QString page)
 
 void App::loadSubreddit(QString subreddit, QString sort, QString page)
 {
-	qDebug() << "FMI ############ LOAD SUBREDDIT";
+	qDebug() << "FMI ############ LOAD SUBREDDIT - subreddit:" << subreddit << " sort:" << " page:" << page;
 	m_model->clear();
 	m_wholeModel->clear();
 	currentPosition = 0;
@@ -336,14 +336,14 @@ void App::subRedditEdit(QString oldSubreddit, QString newSubreddit)
 
 void App::subRedditDelete(QString subreddit)
 {
-	qDebug() << "FMI #### create " << subreddit;
+	qDebug() << "FMI #### delete " << subreddit;
 	QVariantList currentEntries = readXMLEntries();
 
 	// search entry
 	for (QVariantList::iterator it = currentEntries.begin(); it != currentEntries.end(); it++)
 	{
 		QVariantMap itemMap = (*it).toMap();
-		if (itemMap["title"].toString().compare("subreddit"))
+		if (QString::compare(itemMap["title"].toString(), subreddit) == 0)
 		{
 			qDebug() << "FMI #####################" << itemMap["title"].toString() << " matched. Deleting...";
 			currentEntries.erase(it);
@@ -353,6 +353,10 @@ void App::subRedditDelete(QString subreddit)
 	}
 
 	saveXMLEntries(currentEntries);
+
+	m_modelSubreddits->clear();
+	m_modelSubreddits->insertList(currentEntries);
+	emit modelSubredditChanged();
 }
 
 QVariantList App::readXMLEntries()
