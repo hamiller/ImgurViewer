@@ -41,9 +41,13 @@ App::App(QObject *parent)
 	, m_wholeModel(new QListDataModel<QObject*>())
 	, iml(NULL)
 	, currentPosition(0)
+	, m_modelSubreddits(new GroupDataModel())
 {
 	// Register custom type to QML
 	qmlRegisterType<AbstractLoader>();
+
+	QVariantList currentEntries = readXMLEntries();
+	m_modelSubreddits->insertList(currentEntries);
 
 	m_model->setParent(this);
 	m_wholeModel->setParent(this);
@@ -176,6 +180,11 @@ void App::loadImages(int start)
 bb::cascades::DataModel* App::model() const
 {
 	return m_model;
+}
+
+bb::cascades::GroupDataModel* App::modelSubreddit() const
+{
+	return m_modelSubreddits;
 }
 
 /*
@@ -313,9 +322,9 @@ void App::subRedditCreate(QString const subreddit)
 
 	saveXMLEntries(currentEntries);
 
-//	m_modelSubreddits->clear();
-//	m_modelSubreddits->insertList(xmlData.toList());
-//	emit modelSubredditChanged();
+	m_modelSubreddits->clear();
+	m_modelSubreddits->insertList(currentEntries);
+	emit modelSubredditChanged();
 }
 
 void App::subRedditEdit(QString oldSubreddit, QString newSubreddit)
