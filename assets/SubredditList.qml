@@ -1,4 +1,7 @@
 import bb.cascades 1.0
+import bb.system.SystemPrompt 1.0
+import bb.system.SystemToast 1.0
+import bb.system.SystemDialog 1.0
 import bb.system 1.0
 
 Page {
@@ -56,7 +59,8 @@ Page {
 	        ]
             
             function subRedditLoad(selectedItemTitle) {
-                _app.loadSubreddit(selectedItemTitle, sortReddit, page)
+                selectecSubreddit = selectedItemTitle
+                _app.loadSubreddit(selectecSubreddit, sortReddit, page)
                 navigationPane.push(navigationPaneSubreddit);
             }
             function subRedditEdit(selectedItemTitle) {
@@ -120,7 +124,6 @@ Page {
             property string currentItemTitle: ""
             id: promptEdit
             title: "Edit entry"
-            modality: SystemUiModality.Application
             confirmButton.label: "Ok"
             confirmButton.enabled: true
             cancelButton.label: "Cancel"
@@ -134,7 +137,6 @@ Page {
         SystemPrompt {
             id: promptCreate
             title: "Create entry"
-            modality: SystemUiModality.Application
             confirmButton.label: "Ok"
             confirmButton.enabled: true
             cancelButton.label: "Cancel"

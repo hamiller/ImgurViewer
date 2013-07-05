@@ -3,7 +3,8 @@ import bb.cascades 1.0
 Page {
 	actionBarVisibility: ChromeVisibility.Visible
     onCreationCompleted: {
-    	_app.loadGallery(type, sort, page)
+        toast.show()
+        _app.loadGallery(type, sort, page)
     }
 	Container {
 	    background: Color.Black
@@ -107,7 +108,6 @@ Page {
 	                value: "time"
 	            }
 	            onSelectedIndexChanged: {
-	                console.log("TYPE SelectedIndex was changed to " + selectedIndex);
 	                sort = selectedValue
 	                _app.loadGallery(type, sort, page)
 	            }

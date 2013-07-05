@@ -1,7 +1,6 @@
 import bb.cascades 1.0
 
 Page {
-
     Container {
         background: Color.Black
 
@@ -93,7 +92,8 @@ Page {
                 onSelectedIndexChanged: {
                     console.log("TYPE SelectedIndex was changed to " + selectedIndex);
                     sortReddit = selectedValue
-                    _app.loadSubreddit(selectedItem.title, sortReddit, page)
+                    selectecSubreddit = selectedItem.title
+                    _app.loadSubreddit(selectecSubreddit, sortReddit, page)
                 }
             }
             Label {
@@ -108,7 +108,7 @@ Page {
                 preferredWidth: 100
                 onClicked: {
                     page ++
-                    _app.loadSubreddit(selectedItem.title, sortReddit, page)
+                    _app.loadSubreddit(selectecSubreddit, sortReddit, page)
                 }
             }
             Button {
@@ -117,7 +117,7 @@ Page {
                 onClicked: {
                     if (page > 0) {
                         page --
-                        _app.loadSubreddit(selectedItem.title, sortReddit, page)
+                        _app.loadSubreddit(selectecSubreddit, sortReddit, page)
                     }
                 }
             }
