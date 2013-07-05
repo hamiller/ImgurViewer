@@ -7,15 +7,18 @@ Page {
         ListView {
             id: suredditEntries
             dataModel: XmlDataModel {
-                source: "models/subreddits.xml"
+                source: "models/subreddits2.xml"
+            }
+            onDataModelChanged: {
+                console.log("FMI ##########  Data model changed!");
             }
 
             listItemComponents: ListItemComponent {
                 type: "listItem"
                 StandardListItem {
                     id: subredditItem
-
                     title: ListItemData.title
+                    
                     contextActions: ActionSet {
                         title: "Subreddit Actions"
 
@@ -23,41 +26,37 @@ Page {
                             title: "Open"
                             imageSource: "asset:///images/ic_next.png"
                             onTriggered: {
-                                var selectedItem = subredditItem.ListItem.indexPath;
-                                subredditItem.ListItem.view.subRedditLoad(selectedItem)
+                                subredditItem.ListItem.view.subRedditLoad(subredditItem.title)
                             }
                         }
                         ActionItem {
                             title: "Edit"
                             imageSource: "asset:///images/ic_edit.png"
                             onTriggered: {
-                                var selectedItem = subredditItem.ListItem.indexPath;
-                                subredditItem.ListItem.view.subRedditEdit(selectedItem)
+                                subredditItem.ListItem.view.subRedditEdit(subredditItem.title)
                             }
                         }
                         ActionItem {
                             title: "Delete"
                             imageSource: "asset:///images/ic_delete.png"
                             onTriggered: {
-                                var selectedItem = subredditItem.ListItem.indexPath;
-                                subredditItem.ListItem.view.subRedditDelete(selectedItem)
+                                subredditItem.ListItem.view.subRedditDelete(subredditItem.title)
                             }
                         }
 
                     }
                 }
             }
-            function subRedditLoad(selectedItem) {
-                _app.loadSubreddit(selectedItem.title, sortReddit, page)
+            function subRedditLoad(selectedItemTitle) {
+                _app.loadSubreddit(selectedItemTitle, sortReddit, page)
                 navigationPane.push(navigationPaneSubreddit);
             }
-            function subRedditEdit(selectedItem) {
-                console.log("Edit " + selectedItem.title)
-                //                        dialog.currentItemTitle = selectedItem.title
-                prompt.show()
+            function subRedditEdit(selectedItemTitle) {
+                promptEdit.currentItemTitle = selectedItemTitle
+                promptEdit.show()
             }
-            function subRedditDelete(selectedItem) {
-                //                        dialog.currentItemTitle = selectedItem.title
+            function subRedditDelete(selectedItemTitle) {
+                dialog.currentItemTitle = selectedItemTitle
                 dialog.show()
             }
             onTriggered: {
@@ -102,7 +101,7 @@ Page {
                 text: "Add entry"
                 imageSource: "asset:///images/ic_add.png"
                 onClicked: {
-                    _app.subRedditCreate()
+                    promptCreate.show()
                 }
             }
 
@@ -111,7 +110,7 @@ Page {
     attachedObjects: [
         SystemPrompt {
             property string currentItemTitle: ""
-            id: prompt
+            id: promptEdit
             title: "Edit entry"
             modality: SystemUiModality.Application
             confirmButton.label: "Ok"
@@ -120,7 +119,21 @@ Page {
             cancelButton.enabled: true
             onFinished: {
                 if (result == SystemUiResult.ConfirmButtonSelection) {
-                    console.log("Edit " + currentItemTitle + " into " + inputFieldTextEntry)
+                	_app.subRedditEdit(currentItemTitle, inputFieldTextEntry())
+                }
+            }
+        },
+        SystemPrompt {
+            id: promptCreate
+            title: "Create entry"
+            modality: SystemUiModality.Application
+            confirmButton.label: "Ok"
+            confirmButton.enabled: true
+            cancelButton.label: "Cancel"
+            cancelButton.enabled: true
+            onFinished: {
+                if (result == SystemUiResult.ConfirmButtonSelection) {
+                	_app.subRedditCreate(inputFieldTextEntry())
                 }
             }
         },
@@ -136,7 +149,7 @@ Page {
             onFinished: {
                 var x = result;
                 if (x == SystemUiResult.ConfirmButtonSelection) {
-                    console.log("Delete " + currentItemTitle)
+                	_app.subRedditDelete(currentItemTitle)
                 }
             }
         }

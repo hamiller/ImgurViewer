@@ -15,9 +15,9 @@ Page {
 
             // add action for loading additional data after scrolling to bottom
             attachedObjects: ListScrollStateHandler {
-                id: scrollStateHandleSubreddit
+                id: scrollStateHandlerSubreddit
                 onAtEndChanged: {
-                    if (scrollStateHandler.atEnd) {
+                    if (scrollStateHandlerSubreddit.atEnd) {
                         _app.listBottomReached();
                     }
                 }

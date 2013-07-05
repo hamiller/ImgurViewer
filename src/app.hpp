@@ -46,9 +46,9 @@ public:
     Q_INVOKABLE void loadNext();
     Q_INVOKABLE void loadPrev();
     Q_INVOKABLE void listBottomReached();
-    Q_INVOKABLE void subRedditCreate();
-    Q_INVOKABLE void subRedditEdit(QVariantList indexPath);
-    Q_INVOKABLE void subRedditDelete(QVariantList indexPath);
+    Q_INVOKABLE void subRedditCreate(QString subreddit);
+    Q_INVOKABLE void subRedditEdit(QString oldSubreddit, QString newSubreddit);
+    Q_INVOKABLE void subRedditDelete(QString subreddit);
 
 Q_SIGNALS:
 	void imageChanged();
@@ -61,6 +61,7 @@ private:
     void loadJson(QUrl url);
     bb::cascades::QListDataModel<QObject*>* m_model;		// The model that contains the progress and image data for the listview
     bb::cascades::QListDataModel<QObject*>* m_wholeModel;	// The model with all picture data form json
+//    GroupDataModel subredditModel;
     AbstractLoader* iml;
     QVariantList currentIndex; 								// index of selected path in listview
     int currentPosition;
@@ -71,6 +72,8 @@ private:
 	QString imageTitle() const;
 	QUrl imageUrl() const;
 	int type() const; 										// 0 = normal image, 1 = album, 2 = animated gif
+	QVariantList readXMLEntries();
+	void saveXMLEntries(QVariantList currentEntries);
 
     static const char* const galleryUrl;
 	static const char* const clientId;

@@ -26,7 +26,7 @@
 
     <!-- A universally unique application identifier. Must be unique across all BlackBerry Tablet OS applications.
          Using a reverse DNS-style name as the id is recommended. (Eg. com.example.ExampleApplication.) Required. -->
-    <id>com.example.bb10samples.multithreading.imageloader</id>
+    <id>de.sinnix.bb10.imgurloader</id>
 
     <!-- The name that is displayed in the BlackBerry Tablet OS application installer.
          May have multiple values for each language. See samples or xsd schema file. Optional. -->
@@ -52,7 +52,7 @@
     <!-- <copyright></copyright> -->
 
     <!--  Name of author which is used for signing. Must match the developer name of your development certificate. -->
-    <author>Example Inc.</author>
+    <author>Florian Miess</author>
 
     <!--  Unique author ID assigned by signing authority. Required if using debug tokens. -->
     <!-- <authorId>ABC1234YjsnUk235h</authorId> -->

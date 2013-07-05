@@ -21,6 +21,7 @@
 #include <bb/data/JsonDataAccess>
 #include <bb/cascades/ImageView>
 #include <list>
+#include <bb/data/XmlDataAccess>
 
 using namespace bb::cascades;
 
@@ -300,17 +301,82 @@ void App::displayImage()
 	emit imageChanged();
 }
 
-void App::subRedditCreate()
+void App::subRedditCreate(QString const subreddit)
 {
+	qDebug() << "FMI #### create " << subreddit;
+	QVariantList currentEntries = readXMLEntries();
 
+	// create new entry
+	QVariantMap newEntry;
+	newEntry["title"] = QVariant(subreddit);
+	currentEntries.append(newEntry);
+
+	saveXMLEntries(currentEntries);
+
+//	m_modelSubreddits->clear();
+//	m_modelSubreddits->insertList(xmlData.toList());
+//	emit modelSubredditChanged();
 }
 
-void App::subRedditEdit(QVariantList indexPath)
+void App::subRedditEdit(QString oldSubreddit, QString newSubreddit)
 {
-
+	qDebug() << "FMI #### edit " << oldSubreddit << "->" << newSubreddit;
+	subRedditDelete(oldSubreddit);
+	subRedditCreate(newSubreddit);
 }
 
-void App::subRedditDelete(QVariantList indexPath)
+void App::subRedditDelete(QString subreddit)
 {
+	qDebug() << "FMI #### create " << subreddit;
+	QVariantList currentEntries = readXMLEntries();
 
+	// search entry
+	for (QVariantList::iterator it = currentEntries.begin(); it != currentEntries.end(); it++)
+	{
+		QVariantMap itemMap = (*it).toMap();
+		if (itemMap["title"].toString().compare("subreddit"))
+		{
+			qDebug() << "FMI #####################" << itemMap["title"].toString() << " matched. Deleting...";
+			currentEntries.erase(it);
+			break;
+		}
+
+	}
+
+	saveXMLEntries(currentEntries);
+}
+
+QVariantList App::readXMLEntries()
+{
+	QVariantList result;
+	// Load the XML data from local file
+	bb::data::XmlDataAccess xda;
+	QVariant temp = xda.load("app/native/assets/models/subreddits.xml", "/root/listItem");
+	QVariantList currentEntries = temp.value<QVariantList>();
+
+	if (xda.hasError()) {
+		bb::data::DataAccessError error = xda.error();
+		qDebug() << "#########  XML loading error: " << error.errorType() << ": " << error.errorMessage();
+	}
+	else
+	{
+		result = currentEntries;
+	}
+	return result;
+}
+
+void App::saveXMLEntries(QVariantList currentEntries)
+{
+	QVariantMap topLevel;
+	topLevel[".root"] = QVariant("root");
+	topLevel["listItem"] = QVariant(currentEntries);
+	QVariant myData = QVariant(topLevel);
+
+	// save new entry
+	bb::data::XmlDataAccess xda;
+	xda.save(myData, "app/native/assets/models/subreddits.xml");
+	if (xda.hasError()) {
+		bb::data::DataAccessError error = xda.error();
+		qDebug() << "#########  XML writing error: " << error.errorType() << ": " << error.errorMessage();
+	}
 }
