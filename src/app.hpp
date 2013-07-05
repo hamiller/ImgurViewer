@@ -46,7 +46,9 @@ public:
     Q_INVOKABLE void loadNext();
     Q_INVOKABLE void loadPrev();
     Q_INVOKABLE void listBottomReached();
-
+    Q_INVOKABLE void subRedditCreate();
+    Q_INVOKABLE void subRedditEdit(QVariantList indexPath);
+    Q_INVOKABLE void subRedditDelete(QVariantList indexPath);
 
 Q_SIGNALS:
 	void imageChanged();

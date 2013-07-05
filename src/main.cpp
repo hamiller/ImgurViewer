@@ -14,6 +14,7 @@
  */
 
 #include <bb/cascades/Application>
+#include <bb/system/SystemPrompt>
 
 #include "app.hpp"
 
@@ -21,6 +22,8 @@ using ::bb::cascades::Application;
 
 Q_DECL_EXPORT int main(int argc, char** argv)
 {
+	qmlRegisterType<bb::system::SystemPrompt>("bb.system", 1, 0, "SystemPrompt");
+
     Application app(argc, argv);
 
     App mainApp;

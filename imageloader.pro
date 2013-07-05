@@ -43,4 +43,4 @@ suredelete.depends = distclean
 QMAKE_EXTRA_TARGETS += suredelete
 
 LIBS += -lbbdata
-
+LIBS += -lbbsystem

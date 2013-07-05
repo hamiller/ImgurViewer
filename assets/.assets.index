@@ -1,7 +1,15 @@
 1
-5
+13
+images/ic_delete.png
 images/Thumbs.db
+images/ic_edit.png
 images/backbutton.png
 images/background.png
+images/ic_add.png
+images/ic_next.png
 main.qml
+SubredditList.qml
 models/subreddits.xml
+MainGallery.qml
+SubredditGallery.qml
+DetailView.qml

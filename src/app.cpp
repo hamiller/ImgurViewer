@@ -299,3 +299,18 @@ void App::displayImage()
 {
 	emit imageChanged();
 }
+
+void App::subRedditCreate()
+{
+
+}
+
+void App::subRedditEdit(QVariantList indexPath)
+{
+
+}
+
+void App::subRedditDelete(QVariantList indexPath)
+{
+
+}
