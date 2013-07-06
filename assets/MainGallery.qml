@@ -3,7 +3,7 @@ import bb.cascades 1.0
 Page {
 	actionBarVisibility: ChromeVisibility.Visible
     onCreationCompleted: {
-        toast.show()
+        startToast.show()
         _app.loadGallery(type, sort, page)
     }
 	Container {

@@ -2,13 +2,17 @@ import bb.cascades 1.0
 
 Page {
     content: Container {
-	    property int positionX
-	    property int positionY
-	    property int indexPath
-	    property real dragThreshold: 40
-	    property real currentY: 0
-	    
-	    layout: DockLayout {}
+	    property int startX
+	    property int startY
+	    property real alterX
+	    property real alterY
+	    property real dragXThreshold: 180
+        property real dragYThreshold: 120
+        property int indexPath
+        property real currentY: 0
+        property bool swipeActive: true
+
+        layout: DockLayout {}
 	
 	    Container {
 	        bottomPadding: 25
@@ -21,10 +25,26 @@ Page {
 	    }
 	
 	    ScrollView {
-	        scrollViewProperties {
+	        id: scrollView
+            scrollViewProperties {
 	            scrollMode: ScrollMode.Vertical
 	            pinchToZoomEnabled: true
 	        }
+            onContentScaleChanged: {
+                console.log("FMI ############# scale changed:" + contentScale)
+                if (contentScale > 1) {
+                    // we are in zoon mode
+                    swipeActive: false
+                    scrollMode: ScrollMode.Both
+//                    scrollView.scrollViewProperties.scrollMode : ScrollMode.Both
+                }
+                else {
+                    swipeActive: true
+                    scrollMode: ScrollMode.Vertical
+//                    scrollView.scrollViewProperties.setScrollMode(ScrollMode.Vertical)
+                }
+                
+            }
 	
 	        Container {
 	            horizontalAlignment: HorizontalAlignment.Center
@@ -41,8 +61,15 @@ Page {
 	                html: _app.html
 	                enabled: true
 	                visible: true
-	
-	                onLoadProgressChanged: {
+
+                    onMinContentScaleChanged: {
+                        scrollView.scrollViewProperties.minContentScale = minContentScale;
+                    }
+                    onMaxContentScaleChanged: {
+                        scrollView.scrollViewProperties.maxContentScale = maxContentScale;
+                    }
+
+                    onLoadProgressChanged: {
 	                    // Update the ProgressBar while loading.
 	                    progressIndicator.value = loadProgress / 100.0
 	                }
@@ -64,27 +91,35 @@ Page {
 	    }
 	    
 	    onTouch: {
-	        if (event.isDown()) {
-	            positionX = event.windowX
-	            positionY = event.windowY
-	        } else if (event.isUp()) {
-	            if (event.windowY < positionY) {
-	            	currentY = positionY - event.windowY;
+	        if (swipeActive) {
+		        if (event.isDown()) {
+		            startX = event.windowX
+		            startY = event.windowY
+		        } else if (event.isUp()) {
+		            if (event.windowY < startY) {
+		            	alterY = startY - event.windowY
+		            }
+		            else {
+		            	alterY = event.windowY - startY
+	                }
+	                if (event.windowX < startX) {
+	                    alterX = startX - event.windowX
+	                } else {
+	                    alterX = event.windowX - startX
+	                }
+	
+	                if (startX > event.windowX && alterX > dragXThreshold && alterY < dragYThreshold) {
+	                    startX = 0
+		                _app.loadNext()
+		            } else if (startX < event.windowX && alterX > dragXThreshold && alterY < dragYThreshold) {
+	                    startY = 0
+		                _app.loadPrev()
+		            }
+	
+	                console.log("startX:" + startX + " event.windowX:" + event.windowX + " alterX:" + alterX + " dragXThreshold:" + dragXThreshold)
+	                console.log("startY:" + startY + " event.windowY:" + event.windowY + " alterY:" + alterY + " dragYThreshold:" + dragYThreshold)
 	            }
-	            else {
-	            	currentY = event.windowY - positionY
-	            }
-	            
-	            if (positionX > event.windowX && currentY < dragThreshold) {
-	                positionX = 0
-	                _app.loadNext()
-	            } else if (positionX < event.windowX && currentY < dragThreshold) {
-	                positionX = 0
-	                _app.loadPrev()
-	            } else if (positionX == event.windowX && positionY == event.windowY) {
-	                pictureTitle.visible = !pictureTitle.visible
-	            }
-	        }
+            }
 	    }
 	
 		ImageButton {

@@ -7,6 +7,7 @@
 #include <bb/cascades/ImageView>
 #include <list>
 #include <bb/data/XmlDataAccess>
+#include <bb/system/SystemToast>
 
 using namespace bb::cascades;
 
@@ -17,7 +18,11 @@ const char* const App::galleryUrl = "https://api.imgur.com/3/gallery/";
 //const char* const ImageLoader::pictureUrl = "https://api.imgur.com/3/image/";
 const char* const App::pictureUrl = "http://i.imgur.com/";
 const char* const App::clientId = "Client-ID d99014129d28197";
-const int listIncrease = 12;
+const int listIncrease = 36;
+
+//+++++++++++++++
+// for comments: https://api.imgur.com/3/image/BTQt4zl/comments
+//+++++++++++++++
 
 
 App::App(QObject *parent)
@@ -112,13 +117,15 @@ void App::loadBigImage(QVariantList indexPath)
 
 	iml = bigImage;
 	iml->image() = 0;
-	displayImage();
 
 	if (bigImage->type() == 0 || bigImage->type() == 2)
 	{
-		connect(iml, SIGNAL(imageChanged()), this, SLOT(displayImage()));
+		connect(iml, SIGNAL(imageChanged()), this, SLOT(displayImage()), Qt::UniqueConnection);
 		iml->loadBigImage();
 	}
+	else
+		displayImage();
+
 }
 
 void App::loadNext()
@@ -128,6 +135,13 @@ void App::loadNext()
 	{
 		this->currentIndex[0].setValue(currentSize + 1);
 		loadBigImage(this->currentIndex);
+	}
+	else {
+		//We create a SystemToast that shows that show's what you pressed
+		bb::system::SystemToast* toast = new bb::system::SystemToast(this);
+
+		toast->setBody("End of picture list reached.");
+		toast->show();
 	}
 }
 
@@ -292,8 +306,10 @@ QString App::html() const
 
 void App::displayImage()
 {
+	qDebug() << "FMI ################## update picture!";
 	emit imageChanged();
 }
+
 
 void App::subRedditCreate(QString const subreddit)
 {
