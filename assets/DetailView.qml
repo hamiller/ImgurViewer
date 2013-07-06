@@ -2,6 +2,7 @@ import bb.cascades 1.0
 
 Page {
     content: Container {
+        id: detailViewContainer
 	    property int startX
 	    property int startY
 	    property real alterX
@@ -32,15 +33,18 @@ Page {
 	        }
             onContentScaleChanged: {
                 console.log("FMI ############# scale changed:" + contentScale)
-                if (contentScale > 1) {
+                if (contentScale > 1.05) {
+                    console.log("FMI ############# deactivate swipe")
+
                     // we are in zoon mode
-                    swipeActive: false
-                    scrollMode: ScrollMode.Both
+                    detailViewContainer.swipeActive = false
+                    scrollView.scrollViewProperties.scrollMode = ScrollMode.Both
 //                    scrollView.scrollViewProperties.scrollMode : ScrollMode.Both
                 }
                 else {
-                    swipeActive: true
-                    scrollMode: ScrollMode.Vertical
+                    console.log("FMI ############# activate swipe")
+                    detailViewContainer.swipeActive = true
+                    scrollView.scrollViewProperties.scrollMode = ScrollMode.Vertical
 //                    scrollView.scrollViewProperties.setScrollMode(ScrollMode.Vertical)
                 }
                 
@@ -92,7 +96,9 @@ Page {
 	    
 	    onTouch: {
 	        if (swipeActive) {
-		        if (event.isDown()) {
+                console.log("FMI ############# swipe registered?")
+
+                if (event.isDown()) {
 		            startX = event.windowX
 		            startY = event.windowY
 		        } else if (event.isUp()) {
