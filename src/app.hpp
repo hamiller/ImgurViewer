@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Research In Motion Limited.
+/* Copyright (c) 2013 Florian Miess sinnix.de.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,7 @@ public:
     Q_INVOKABLE void subRedditCreate(QString subreddit);
     Q_INVOKABLE void subRedditEdit(QString oldSubreddit, QString newSubreddit);
     Q_INVOKABLE void subRedditDelete(QString subreddit);
+    Q_INVOKABLE void loadComments();
 
 
 Q_SIGNALS:
@@ -79,6 +80,8 @@ private:
 	int type() const; 										// 0 = normal image, 1 = album, 2 = animated gif
 	QVariantList readXMLEntries();
 	void saveXMLEntries(QVariantList currentEntries);
+
+//	QVariant loadImage;
 
     static const char* const galleryUrl;
 	static const char* const clientId;

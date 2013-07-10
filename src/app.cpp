@@ -1,3 +1,18 @@
+/* Copyright (c) 2013 Florian Miess sinnix.de.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "app.hpp"
 
 #include <bb/cascades/AbstractPane>
@@ -18,7 +33,7 @@ const char* const App::galleryUrl = "https://api.imgur.com/3/gallery/";
 //const char* const ImageLoader::pictureUrl = "https://api.imgur.com/3/image/";
 const char* const App::pictureUrl = "http://i.imgur.com/";
 const char* const App::clientId = "Client-ID d99014129d28197";
-const int listIncrease = 36;
+const int listIncrease = 3;
 
 //+++++++++++++++
 // for comments: https://api.imgur.com/3/image/BTQt4zl/comments
@@ -47,6 +62,8 @@ App::App(QObject *parent)
 	qml->setContextProperty("_app", this);
 
 	root = qml->createRootObject<AbstractPane>();
+
+//	loadImage = QVariant::fromValue(Image(QUrl("asset:///images/Animation_black.gif")));
 
 	Application::instance()->setScene(root);
 }
@@ -113,19 +130,25 @@ void App::loadBigImage(QVariantList indexPath)
 
 	QObject* o = qvariant_cast<QObject*>(m_model->data(indexPath));
 	AbstractLoader *bigImage = qobject_cast<AbstractLoader*>(o);
-	qDebug()<< "FMI +++++++++++++++ " << bigImage->origImageUrl() << ", " << bigImage->origImageUrl() << ", " << bigImage->title() << ", " << bigImage->type();
+	qDebug()<< "FMI +++++++++++++++ " << bigImage->currentImageUrl() << ", " << bigImage->origImageUrl() << ", " << bigImage->title() << ", " << bigImage->type();
 
 	iml = bigImage;
-	iml->image() = 0;
+	// looks like the webview components starts downloading the picture by its own
+//	iml->image() = loadImage;
 
-	if (bigImage->type() == 0 || bigImage->type() == 2)
-	{
-		connect(iml, SIGNAL(imageChanged()), this, SLOT(displayImage()), Qt::UniqueConnection);
-		iml->loadBigImage();
-	}
-	else
+//	if (bigImage->type() == 0 || bigImage->type() == 2)
+//	{
+//		connect(iml, SIGNAL(imageChanged()), this, SLOT(displayImage()), Qt::UniqueConnection);
+//		iml->loadBigImage();
+//	}
+//	else
 		displayImage();
 
+}
+
+void App::loadComments()
+{
+	QString comments = iml->origImageUrl() + "/comments";
 }
 
 void App::loadNext()

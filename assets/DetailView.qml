@@ -96,8 +96,6 @@ Page {
 	    
 	    onTouch: {
 	        if (swipeActive) {
-                console.log("FMI ############# swipe registered?")
-
                 if (event.isDown()) {
 		            startX = event.windowX
 		            startY = event.windowY
@@ -127,6 +125,12 @@ Page {
 	            }
             }
 	    }
+
+        ListView {
+            id: comments
+            visible: false
+            
+        }
 	
 		ImageButton {
 	        defaultImageSource: "asset:///images/backbutton.png"
@@ -139,5 +143,18 @@ Page {
 	            navigationPane.pop(navigationPane);
 	        }
 	    }
-	}
+
+        ImageButton {
+            defaultImageSource: "asset:///images/commentbutton.png"
+            pressedImageSource: "asset:///images/commentbutton.png"
+            disabledImageSource: "asset:///images/commentbutton.png"
+            horizontalAlignment: HorizontalAlignment.Right
+            verticalAlignment: VerticalAlignment.Bottom
+
+            onClicked: {
+                comments.visible = true
+                _app.loadComments()
+            }
+        }
+    }
 }
